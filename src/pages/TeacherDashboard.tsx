@@ -305,7 +305,7 @@ function LiveSession() {
             {revealedCode ? (
               <div className="text-center p-6 bg-gradient-primary rounded-2xl">
                 <div className="text-xs text-primary-foreground/80 font-bold uppercase tracking-wider mb-2">Active — show students</div>
-                <div className="text-6xl font-extrabold text-primary-foreground tracking-[0.4em]">{revealedCode.code}</div>
+                <div className="text-6xl font-extrabold text-white tracking-[0.4em]">{revealedCode.code}</div>
                 <div className="text-sm text-primary-foreground/80 mt-3">Hides in <b>{revealCountdown}s</b></div>
               </div>
             ) : (
