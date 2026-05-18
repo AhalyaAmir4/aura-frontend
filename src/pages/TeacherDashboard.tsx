@@ -44,7 +44,7 @@ function LiveSession() {
   const [qrCountdown, setQrCountdown]   = useState(60);
   const [roster, setRoster]             = useState<any[]>([]);
   const [presentCount, setPresentCount] = useState(0);
-  const [revealedCode, setRevealedCode] = useState<any>(null);
+  const [revealedCode, setRevealedCode] = useState<{code:string;expiresAt:number}|null>(null);
   const [revealCountdown, setRevealCountdown] = useState(0);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [manualBusy, setManualBusy]     = useState<number|null>(null);
@@ -138,18 +138,14 @@ function LiveSession() {
 
   const revealCode = async () => {
   try {
-    const response = await api.post(
-      `/teacher/sessions/${session.id}/reveal-code`
-    );
+    const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
 
-    console.log("RESPONSE DATA:", response.data);
+    console.log("RESPONSE DATA:", data);
 
     setRevealedCode({
-      code: String(response.data.code),
-      expiresAt: new Date(response.data.expiresAt).getTime()
+      code: data.code,
+      expiresAt: new Date(data.expiresAt).getTime()
     });
-
-    setRevealCountdown(30);
 
   } catch (e: any) {
     console.log("ERROR:", e);
@@ -309,9 +305,7 @@ function LiveSession() {
             {revealedCode ? (
               <div className="text-center p-6 bg-gradient-primary rounded-2xl">
                 <div className="text-xs text-primary-foreground/80 font-bold uppercase tracking-wider mb-2">Active — show students</div>
-                <div className="text-6xl font-extrabold text-white tracking-[0.4em]">
-  {String(revealedCode?.code || "")}
-</div>
+                <div className="text-6xl font-extrabold text-white tracking-[0.4em]">{revealedCode.code}</div>
                 <div className="text-sm text-primary-foreground/80 mt-3">Hides in <b>{revealCountdown}s</b></div>
               </div>
             ) : (
