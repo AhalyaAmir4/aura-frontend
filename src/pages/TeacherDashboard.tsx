@@ -82,10 +82,9 @@ function LiveSession() {
         setSection(s.section ?? '');
         setDept(s.department ?? '');
         setYear(String(s.year ?? ''));
-        if (s.shortCodeRevealed && s.shortCode && s.shortCodeExpiresAt) {
-          const exp = new Date(s.shortCodeExpiresAt).getTime();
-          if (exp > Date.now()) setRevealedCode({ code: s.shortCode, expiresAt: exp });
-        }
+        // ✅ FIX: Don't restore revealed code from backend on reload
+        // because the expiresAt from backend may have timezone mismatch
+        // Let teacher click Reveal again if they need it
       }
       setBootstrapping(false);
     }).catch(() => setBootstrapping(false));
@@ -136,26 +135,31 @@ function LiveSession() {
     } catch (e: any) { toast.error(e.response?.data?.error ?? 'Failed'); }
   };
 
+  // ✅ FIX: Use Date.now() + 30000 on frontend instead of parsing backend's expiresAt
+  // This avoids timezone mismatch and ensures the countdown always works correctly
   const revealCode = async () => {
-  try {
-    const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
-
-    console.log("RESPONSE DATA:", data);
-
-    setRevealedCode({
-      code: data.code,
-      expiresAt: new Date(data.expiresAt).getTime()
-    });
-
-  } catch (e: any) {
-    console.log("ERROR:", e);
-
-    toast.error(e.response?.data?.error ?? 'Failed');
-  }
-};
+    try {
+      const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
+      console.log('Reveal code response:', data); // Keep for debugging
+      if (!data.code) {
+        toast.error('No code received from server');
+        return;
+      }
+      setRevealedCode({
+        code: data.code,
+        expiresAt: Date.now() + 30000  // ✅ Always 30s from NOW, avoids backend timezone issues
+      });
+    } catch (e: any) {
+      console.error('Reveal code error:', e);
+      toast.error(e.response?.data?.error ?? 'Failed');
+    }
+  };
 
   const hideCode = async () => {
-    try { await api.post(`/teacher/sessions/${session.id}/hide-code`); setRevealedCode(null); } catch {}
+    try {
+      await api.post(`/teacher/sessions/${session.id}/hide-code`);
+      setRevealedCode(null);
+    } catch {}
   };
 
   const manualMark = async (studentId: number, name: string) => {
@@ -305,7 +309,7 @@ function LiveSession() {
             {revealedCode ? (
               <div className="text-center p-6 bg-gradient-primary rounded-2xl">
                 <div className="text-xs text-primary-foreground/80 font-bold uppercase tracking-wider mb-2">Active — show students</div>
-                <div className="text-6xl font-extrabold text-white tracking-[0.4em]">{revealedCode.code}</div>
+                <div className="text-6xl font-extrabold text-primary-foreground tracking-[0.4em]">{revealedCode.code}</div>
                 <div className="text-sm text-primary-foreground/80 mt-3">Hides in <b>{revealCountdown}s</b></div>
               </div>
             ) : (
