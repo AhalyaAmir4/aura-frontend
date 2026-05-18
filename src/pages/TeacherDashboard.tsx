@@ -137,11 +137,22 @@ function LiveSession() {
   };
 
   const revealCode = async () => {
-    try {
-      const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
-      setRevealedCode({ code: data.code, expiresAt: new Date(data.expiresAt).getTime() });
-    } catch (e: any) { toast.error(e.response?.data?.error ?? 'Failed'); }
-  };
+  try {
+    const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
+
+    console.log("RESPONSE DATA:", data);
+
+    setRevealedCode({
+      code: data.code,
+      expiresAt: new Date(data.expiresAt).getTime()
+    });
+
+  } catch (e: any) {
+    console.log("ERROR:", e);
+
+    toast.error(e.response?.data?.error ?? 'Failed');
+  }
+};
 
   const hideCode = async () => {
     try { await api.post(`/teacher/sessions/${session.id}/hide-code`); setRevealedCode(null); } catch {}
