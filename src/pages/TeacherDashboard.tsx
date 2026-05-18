@@ -138,14 +138,18 @@ function LiveSession() {
 
   const revealCode = async () => {
   try {
-    const { data } = await api.post(`/teacher/sessions/${session.id}/reveal-code`);
+    const response = await api.post(
+      `/teacher/sessions/${session.id}/reveal-code`
+    );
 
-    console.log("RESPONSE DATA:", data);
+    console.log("RESPONSE DATA:", response.data);
 
     setRevealedCode({
-      code: data.code,
-      expiresAt: new Date(data.expiresAt).getTime()
+      code: String(response.data.code),
+      expiresAt: new Date(response.data.expiresAt).getTime()
     });
+
+    setRevealCountdown(30);
 
   } catch (e: any) {
     console.log("ERROR:", e);
